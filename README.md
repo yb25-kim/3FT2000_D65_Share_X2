@@ -345,7 +345,7 @@ A. Disassembling the sensor voids the A/S policy and may cause the sensor calibr
 | Date | Description |
 |---|---|
 | 2026.10.16 | CAN settings updated (RX/TX CAN ID, RX ID MASK, CAN-FD bit timing, default sample rate 500 Hz, power-up output) (Current version) |
-| [2026.10.14](https://github.com/yb25-kim/3FT2000_D65_Share_X2/blob/3b8cdfe9402f163b72399c0c472810de9acaab7f/README.md) | Unused axes (Fx, Fy, Tz) shown as = 0; RX ID MASK display fixed |
+| 2026.10.14 | Unused axes (Fx, Fy, Tz) shown as = 0; RX ID MASK display fixed |
 | 2026.10.13 | Minor wording revisions |
 | 2026.10.12 | AVERAGE FILTER SET |
 | 2026.07.24 |  |
