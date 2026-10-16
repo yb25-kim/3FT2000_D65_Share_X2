@@ -1,6 +1,6 @@
 # Smart 3-axis Force Torque Sensor 3FT2000-D65-C (ENG)
 
-Rev. 2026.10.14
+Rev. 2026.10.16
 
 - [Foreword](#foreword)
   - [Notice](#notice)
@@ -83,9 +83,9 @@ Installation of Force Torque sensor **MUST** be performed by qualified personnel
 | Dimensions | mm | D65 x H21 |
 | Weight | g |  |
 | Temperature | ℃ | 10-50 |
-| Sample rate | Hz | 1000 |
-| Interfaces | 1,000Kbps | CAN, CAN-FD |
-| Wire | Length: 15 cm | For User: <br>CAN\_H / CAN\_L / VCC / GND |
+| Sample rate | Hz | 1000 $\color{red}\textsf{(Default 500)}$ |
+| Interfaces | Mbps | CAN 2.0 : Nominal 1 <br>CAN-FD : Nominal 1 / Data 4 (BRS) |
+| Wire | Length: 10 cm | For User: <br>CAN\_H / CAN\_L / VCC / GND |
 
 ### 1.4 Complex Loading Range
 
@@ -150,39 +150,49 @@ Drawing File :
 
 ### 3.1 Default CAN Setting
 
-- **The output rate can be changed from 100 Hz to 1000 Hz**
+- **The output rate can be changed from 100 Hz to 1000 Hz** $\color{red}\textsf{(Default 500 Hz)}$
 - **Please refer to the “3.2 User Commands” below for how to change it**
 - CAN-2.0
   - Nominal bitrate : 1Mbps
   - Data bitrate : 1Mbps
-  - RX ID MASK : 0x220\~0x22F, 0x320\~0x32F
+  - $\color{red}\textsf{RX ID MASK : 0x200, 0x210}$
+  - $\color{red}\textsf{FD-tolerant (no error frames on CAN FD frames)}$
 - CAN-FD
-  - Nominal bitrate : 1Mbps
-  - Data bitrate : 4Mbps (BRS mode)
-  - RX ID MASK : 0x220\~0x22F, 0x320\~0x32F
-- PCAN : CAN-FD PARAMETER SETTING
+  - $\color{red}\textsf{Nominal bitrate : 1Mbps (Sample point 87.5\%)}$
+  - $\color{red}\textsf{Data bitrate : 4Mbps (BRS mode, Sample point 75\%)}$
+  - $\color{red}\textsf{RX ID MASK : 0x200, 0x210}$
+- CAN-FD PARAMETER SETTING (Clock 80 MHz, FDSET3)
 
-![PCAN CAN-FD parameter setting 1](img/pcan-fd-setting-1.png)
-
-![PCAN CAN-FD parameter setting 2](img/pcan-fd-setting-2.png)
+| Item | Nominal | Data |
+|---|---|---|
+| Bit rate | $\color{red}\textsf{1 Mbps}$ | $\color{red}\textsf{4 Mbps}$ |
+| Sample point | $\color{red}\textsf{87.5\%}$ | $\color{red}\textsf{75\%}$ |
+| Prescaler | $\color{red}\textsf{1}$ | $\color{red}\textsf{1}$ |
+| TSEG1 | $\color{red}\textsf{69}$ | $\color{red}\textsf{14}$ |
+| TSEG2 | $\color{red}\textsf{10}$ | $\color{red}\textsf{5}$ |
+| SJW | $\color{red}\textsf{10}$ | $\color{red}\textsf{4}$ |
+| TDC | - | $\color{red}\textsf{ON}$ |
+| TDCO (SSP offset) | - | $\color{red}\textsf{15 (75\%)}$ |
+| TDCF | - | 15 |
 
 ### 3.2 User Commands
 
-- RX CAN IDs : 0x223  (CAN 2.0) , 0x323 (CAN FD)  
-  TX CAN IDs :The pre-configured TX CAN IDs are 0x260 (CAN 2.0) and 0x360 (CAN FD). Accordingly, the 'current TX CAN ID' in the table below is represented as [0x60, 0x02] or [0x60, 0x03] (LSB first).
+- RX CAN IDs : $\color{red}\textsf{0x200}$ (CAN 2.0) , $\color{red}\textsf{0x210}$ (CAN FD)  
+  TX CAN IDs :The pre-configured TX CAN IDs are $\color{red}\textsf{0x201}$ (CAN 2.0) and $\color{red}\textsf{0x211}$ (CAN FD). Accordingly, the 'current TX CAN ID' in the table below is represented as [0x01, 0x02] or [0x11, 0x02] (LSB first).
 
 - Data Transmission Procedure  
-  The sensor does not automatically output data upon power-up. To receive data, the host must send the **CAN MODE** configuration command followed by the **TRANSMIT DATA** request command.  
+  On power-up, the sensor automatically outputs Float Combined data in CAN FD mode (BRS ON).  
+  To change the output, the host must send the **CAN MODE** configuration command followed by the **TRANSMIT DATA** request command.  
   Example:   
-  **CAN MODE:** ID: `0x223`, Data: `0x60 0x02 0x04 0x01`  
-  **TRANSMIT DATA:** ID: `0x223`, Data: `0x60 0x02 0x03 0x02`
+  **CAN MODE:** ID: `0x210`, Data: `0x11 0x02 0x04 0x03`  
+  **TRANSMIT DATA:** ID: `0x210`, Data: `0x11 0x02 0x03 0x06`
 
 | COMMAND | RX CAN ID | Data[0] | Data[1] | Data[2] | Data[3]<br>See table below | Data[4] | Data[5] |
 |---|---|---|---|---|---|---|---|
-| SENSOR TX CAN ID SET | 0x223 <br>0x323 | current<br>TX CAN <br>ID (LSB) | current<br>TX CAN <br>ID (MSB) | 0x01 | 0x01<br><br>0x02 | TX CAN 2.0 <br>ID(LSB)<br>TX CAN FD<br>ID(LSB) | TX CAN 2.0<br> ID(MSB)<br>TX CAN FD <br>ID(MSB) |
+| SENSOR TX CAN ID SET | $\color{red}\textsf{0x200}$ <br>$\color{red}\textsf{0x210}$ | current<br>TX CAN <br>ID (LSB) | current<br>TX CAN <br>ID (MSB) | 0x01 | 0x01<br><br>0x02 | TX CAN 2.0 <br>ID(LSB)<br>TX CAN FD<br>ID(LSB) | TX CAN 2.0<br> ID(MSB)<br>TX CAN FD <br>ID(MSB) |
 | BIAS |  |  |  | 0x02 |  |  |  |
-| TRANSMIT DATA |  |  |  | 0x03 | 0x01<br>0x03<br>0x05 |  |  |
-| CAN MODE |  |  |  | 0x04 | 0x01<br>0x02 |  |  |
+| TRANSMIT DATA |  |  |  | 0x03 | 0x01~0x06 |  |  |
+| CAN MODE |  |  |  | 0x04 | 0x01<br>0x02<br>0x03 |  |  |
 | SAMPLE RATE SET |  |  |  | 0x05 | 0x01<br>0x02<br>0x03 <br>0x04 |  |  |
 | FD PARAMETER SET |  |  |  | 0x06 | 0x01<br>0x02<br>0x03<br>0x04 |  |  |
 | AVERAGE FILTER SET |  |  |  | 0x07 | 0x01~0xff |  |  |
@@ -193,13 +203,13 @@ Drawing File :
 |---|---|
 | SENSOR TX CAN ID SET | 0x01 : TX CAN 2.0 ID SET  ex) ID(LSB) = 0x23, ID(MSB) = 0x01,  Resulting ID 0x123<br>0x02 : TX CAN FD ID SET  ex) ID(LSB) = 0x56, ID(MSB) = 0x04,  Resulting ID 0x456 |
 | BIAS | Bias |
-| TRANSMIT DATA | 0x01 : INT Transmitting data<br>0x03 : INT Combined Transmitting data  (FD only)<br>0x05 : Float Combined Transmitting data  (FD only) |
-| CAN MODE | 0x01 : CAN 2.0 mode<br>0x02 : CAN FD mode BRS OFF (Effective from 2026.07.02)<br>0x03 : CAN FD mode BRS ON (Effective from 2026.07.02) |
-| SAMPLE RATE SET | 0x01 :RATE 100Hz  <br>0x02 :RATE 250Hz<br>0x03 :RATE 500Hz<br>0x04 :RATE 1000Hz (Default) |
+| TRANSMIT DATA | 0x01 : INT Transmitting data<br>0x02 : INT Transmitting data (Temperature compensated)<br>0x03 : INT Combined Transmitting data  (FD only)<br>0x04 : INT Combined Transmitting data (Temperature compensated, FD only)<br>0x05 : Float Combined Transmitting data  (FD only)<br>0x06 : Float Combined Transmitting data (Temperature compensated, FD only, Default) |
+| CAN MODE | 0x01 : CAN 2.0 mode<br>0x02 : CAN FD mode BRS OFF (Effective from 2026.07.02)<br>0x03 : CAN FD mode BRS ON (Effective from 2026.07.02) (Default) |
+| SAMPLE RATE SET | 0x01 :RATE 100Hz  <br>0x02 :RATE 250Hz<br>$\color{red}\textsf{0x03 :RATE 500Hz (Default)}$<br>0x04 :RATE 1000Hz |
 | FD PARAMETER SET | 0x01 :FDSET1 <br>0x02 :FDSET2<br>0x03 :FDSET3 (Default) <br>0x04 :FDSET4 |
 | AVERAGE FILTER SET | 0x01~0xff  (Effective from 2026.10.12) <br>(0x01 : Default, no filtering) |
 | TX CAN ID CONFIRM | 0x01 :TX CAN 2.0 ID : data field not used (DLC = 0)<br>0x02 :TX CAN FD ID : data field not used  (DLC = 0) |
-| FACTORY RESET | FDSET3 (Default) <br>RATE 1000Hz (Default)<br>Zero Bias (Default) <br>current TX CAN 2.0 ID : 0x260 , current TX CAN FD ID : 0x360 (Default)<br> FILTER : 0x01 (Default)|
+| FACTORY RESET | FDSET3 (Default) <br>$\color{red}\textsf{RATE 500Hz (Default)}$<br>Zero Bias (Default) <br>current TX CAN 2.0 ID : $\color{red}\textsf{0x201}$ , current TX CAN FD ID : $\color{red}\textsf{0x211}$ (Default)<br> FILTER : 0x01 (Default)|
 
 ### 3.3 Sensor Data Output
 
@@ -212,12 +222,12 @@ Drawing File :
 
 | INDEX | TX CAN ID | DLC | data[0] | data[1] | data[2] | data[3] | data[4] | data[5] |
 |---|---|---|---|---|---|---|---|---|
-| FINT | 2.0 ID 0x260<br>FD ID 0x360 | 6 | Fx(LSB) | Fx(MSB) | Fy(LSB) | Fy(MSB) | Fz(LSB) | Fz(MSB) |
+| FINT | 2.0 ID $\color{red}\textsf{0x201}$<br>FD ID $\color{red}\textsf{0x211}$ | 6 | Fx(LSB) | Fx(MSB) | Fy(LSB) | Fy(MSB) | Fz(LSB) | Fz(MSB) |
 
-- Fx Output = 0
-- Fy Output = 0
+- $\color{red}\textsf{Fx Output = 0}$
+- $\color{red}\textsf{Fy Output = 0}$
 - Fz Output = Fz(MSB)\*256 + Fz(LSB)
-- Force[N] = Force Output/10
+- $\color{red}\textsf{Force[N] = Force Output/10}$
 
 > [!NOTE]
 > **The final calculated Force and Torque values need to be cast into 16-bit integers.**
@@ -226,12 +236,12 @@ Drawing File :
 
 | INDEX | TX CAN ID | DLC | data[0] | data[1] | data[2] | data[3] | data[4] | data[5] |
 |---|---|---|---|---|---|---|---|---|
-| TINT | 2.0 ID 0x261<br>FD ID 0x361 | 6 | Tx(LSB) | Tx(MSB) | Ty(LSB) | Ty(MSB) | Tz(LSB) | Tz(MSB) |
+| TINT | 2.0 ID $\color{red}\textsf{0x202}$<br>FD ID $\color{red}\textsf{0x212}$ | 6 | Tx(LSB) | Tx(MSB) | Ty(LSB) | Ty(MSB) | Tz(LSB) | Tz(MSB) |
 
 - Tx Output = Tx(MSB)\*256 + Tx(LSB)
 - Ty Output = Ty(MSB)\*256 + Ty(LSB)
-- Tz Output = 0
-- Torque[Nm] = Torque Output/100
+- $\color{red}\textsf{Tz Output = 0}$
+- $\color{red}\textsf{Torque[Nm] = Torque Output/100}$
 
 > [!NOTE]
 > **The final calculated Force and Torque values need to be cast into 16-bit integers.**
@@ -242,43 +252,43 @@ Drawing File :
 
 | INDEX | TX CAN ID | DLC | data[0] | data[1] | data[2] | data[3] | data[4] | data[5] |
 |---|---|---|---|---|---|---|---|---|
-| CINT | FD ID 0x362 | 12 | Fx(LSB) | Fx(MSB) | Fy(LSB) | Fy(MSB) | Fz(LSB) | Fz(MSB) |
+| CINT | FD ID $\color{red}\textsf{0x213}$ | 12 | Fx(LSB) | Fx(MSB) | Fy(LSB) | Fy(MSB) | Fz(LSB) | Fz(MSB) |
 
 | INDEX | data[6] | data[7] | data[8] | data[9] | data[10] | data[11] |
 |---|---|---|---|---|---|---|
 | CINT | Tx(LSB) | Tx(MSB) | Ty(LSB) | Ty(MSB) | Tz(LSB) | Tz(MSB) |
 
-- Fx Output = 0
-- Fy Output = 0
+- $\color{red}\textsf{Fx Output = 0}$
+- $\color{red}\textsf{Fy Output = 0}$
 - Fz Output = Fz(MSB)\*256 + Fz(LSB)
 - Tx Output = Tx(MSB)\*256 + Tx(LSB)
 - Ty Output = Ty(MSB)\*256 + Ty(LSB)
-- Tz Output = 0
-- Force[N] = Force Output/10
-- Torque[Nm] = Torque Output/100
+- $\color{red}\textsf{Tz Output = 0}$
+- $\color{red}\textsf{Force[N] = Force Output/10}$
+- $\color{red}\textsf{Torque[Nm] = Torque Output/100}$
 
 > [!NOTE]
 > **The final calculated Force and Torque values need to be cast into 16-bit integers**
 
 ![Combined INT data output example](img/data-output-combined-int.png)
 
-**Combined Float Transmitting data (data[0] : 0x03, data[1] : 5 or 6)**
+**Combined Float Transmitting data (data[2] : 0x03, data[3] : 5 or 6)**
 
 | INDEX | TX CAN ID | DLC | data[0~3] | data[4~7] | data[8~11] | data[12~15] | data[16~19] | data[20~23] |
 |---|---|---|---|---|---|---|---|---|
-| CFLOAT | FD ID 0x362 | 24 | Fx | Fy | Fz | Tx | Ty | Tz |
+| CFLOAT | FD ID $\color{red}\textsf{0x213}$ | 24 | Fx | Fy | Fz | Tx | Ty | Tz |
 
-- `float Fx_Output = 0 ;`
-- `float Fy_Output = 0 ;`
+- $\color{red}\textsf{float Fx\_Output = 0;}$
+- $\color{red}\textsf{float Fy\_Output = 0;}$
 - `uint32_t Fz_Raw = (Fz(MSB) << 24) | (Fz(3rd) << 16) | (Fz(2nd) << 8) | (Fz(LSB));`
 - `float Fz_Output = *(float *)&Fz_Raw ;`
 - `uint32_t Tx_Raw = (Tx(MSB) << 24) | (Tx(3rd) << 16) | (Tx(2nd) << 8) | (Tx(LSB));`
 - `float Tx_Output = *(float *)&Tx_Raw ;`
 - `uint32_t Ty_Raw = (Ty(MSB) << 24) | (Ty(3rd) << 16) | (Ty(2nd) << 8) | (Ty(LSB));`
 - `float Ty_Output = *(float *)&Ty_Raw ;`
-- `float Tz_Output = 0 ;`
-- Force[N] = Force Output
-- Torque[Nm] = Torque Output
+- $\color{red}\textsf{float Tz\_Output = 0;}$
+- $\color{red}\textsf{Force[N] = Force Output}$
+- $\color{red}\textsf{Torque[Nm] = Torque Output}$
 
 > [!NOTE]
 > **The final calculated Force and Torque values need to be cast into float.**
@@ -286,7 +296,7 @@ Drawing File :
 ![Combined Float data output example](img/data-output-combined-float.png)
 
 > [!NOTE]
-> The calculation of the data must follow the little-endian format.
+> $\color{red}\textsf{The calculation of the data must follow the little-endian format.}$
 > ![Little-endian format](img/little-endian.png)
 
 ## 4. Additional information
@@ -334,7 +344,8 @@ A. Disassembling the sensor voids the A/S policy and may cause the sensor calibr
 
 | Date | Description |
 |---|---|
-| 2026.10.14 | Unused axes (Fx, Fy, Tz) shown as = 0; RX ID MASK display fixed (Current version) |
+| 2026.10.16 | CAN settings updated (RX/TX CAN ID, RX ID MASK, CAN-FD bit timing, default sample rate 500 Hz, power-up output) (Current version) |
+| [2026.10.14](https://github.com/yb25-kim/3FT2000_D65_Share_X2/blob/3b8cdfe9402f163b72399c0c472810de9acaab7f/README.md) | Unused axes (Fx, Fy, Tz) shown as = 0; RX ID MASK display fixed |
 | 2026.10.13 | Minor wording revisions |
 | 2026.10.12 | AVERAGE FILTER SET |
 | 2026.07.24 |  |
